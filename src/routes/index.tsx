@@ -1,32 +1,94 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { fetchTMDBData } from "../fetch/tmdbDate";
+import { TMovie } from "../types/tmdb.types";
 import Loader from "../components/Loader";
-import getWatchlist from "../queries/getUser";
+import Poster from "../components/Poster";
+import Card from "../components/Card";
+import useGetUserList from "../hooks/useGetUserList";
+import { useSession } from "../hooks/useSession";
 
 export const Route = createFileRoute("/")({
   component: MainPage,
 });
 
+const movieQueries = [
+  { key: "popularMovies", endpoint: "/movie/popular" },
+  { key: "upcomingMovies", endpoint: "/movie/upcoming" },
+  { key: "topRatedMovies", endpoint: "/movie/top_rated" },
+];
+
 function MainPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["popular"],
-    queryFn: async () => {
-      const response = await fetchTMDBData("/movie/popular");
-      return response.results;
-    },
-  });
-  const { data: userWatchlist } = useQuery({
-    queryKey: ["watchlist"],
-    queryFn: async () => {
-      const response = await getWatchlist();
-      return response;
-    },
+  const { user } = useSession();
+  const movieList = useQueries({
+    queries: movieQueries.map(({ key, endpoint }) => ({
+      queryKey: [key],
+      queryFn: async () => {
+        const response = await fetchTMDBData(endpoint);
+        return response.results as TMovie[];
+      },
+    })),
   });
 
-  if (error) {
-    return <div>{error.message}</div>;
-  }
+  const [favorites, rating, watchlist] = useGetUserList(user?.id);
+  const [popular, upcoming, topRated] = movieList;
 
-  return <div>{isLoading ? <Loader /> : <div>Hello World</div>}</div>;
+  const isLoading =
+    movieList.some((result) => result.isLoading) ||
+    [favorites, rating, watchlist].some((query) => query.isLoading);
+
+  const isError =
+    movieList.some((result) => result.isError) ||
+    [favorites, rating, watchlist].some((query) => query.isError);
+
+  if (isError) return <div>Error occurred. Please try again later.</div>;
+  return (
+    <div>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <Card className="flex flex-wrap gap-3 m-auto mb-4">
+            {popular.data &&
+              popular.data.map((movie) => (
+                <Poster
+                  movieDetails={movie}
+                  key={movie.id}
+                  isFavorite={
+                    favorites.data &&
+                    favorites.data.some((fav) => fav.movie_id === movie.id)
+                  }
+                />
+              ))}
+          </Card>
+          <Card className="flex flex-wrap gap-3 m-auto mb-4">
+            {upcoming.data &&
+              upcoming.data.map((movie) => (
+                <Poster
+                  movieDetails={movie}
+                  key={movie.id}
+                  isFavorite={
+                    favorites.data &&
+                    favorites.data.some((fav) => fav.movie_id === movie.id)
+                  }
+                />
+              ))}
+          </Card>
+          <Card className="flex flex-wrap gap-3 m-auto mb-4">
+            {topRated.data &&
+              topRated.data.map((movie) => (
+                <Poster
+                  movieDetails={movie}
+                  key={movie.id}
+                  isFavorite={
+                    favorites.data &&
+                    favorites.data.some((fav) => fav.movie_id === movie.id)
+                  }
+                />
+              ))}
+          </Card>
+        </>
+      )}
+    </div>
+  );
 }

@@ -7,7 +7,9 @@ export const Route = createRootRoute({
   component: () => (
     <React.Fragment>
       <Navbar />
-      <Outlet />
+      <main className="m-auto max-w-6xl px-4">
+        <Outlet />
+      </main>
       <Footer />
     </React.Fragment>
   ),
