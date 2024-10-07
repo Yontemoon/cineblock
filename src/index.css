@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.stream {
+  @apply relative inline-block bg-[#9147ff] z-0;
+}
+
+.stream:before,
+.stream:after {
+  content: "";
+  @apply block bg-[#9147ff] w-2 h-2 absolute transition-all duration-300 ease-in-out;
+}
+
+.stream:before {
+  @apply top-0 left-0 origin-top-left rotate-[-45deg] scale-0;
+}
+
+.stream:after {
+  @apply right-0 bottom-0 origin-bottom-right rotate-45 scale-0;
+}
+
+.stream:hover .stream__thumbnail {
+  @apply translate-x-1.5 -translate-y-1.5;
+}
+
+.stream:hover:before {
+  @apply rotate-[-45deg] scale-100;
+}
+
+.stream:hover:after {
+  @apply rotate-45 scale-100;
+}
+
+.stream__thumbnail {
+  @apply z-10 block relative;
+}
