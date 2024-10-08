@@ -1,8 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import updateWatchlist from "../queries/updateWatchlist";
 import { useSession } from "../hooks/useSession";
 import { TMovie } from "../types/tmdb.types";
-import { TSWatchlist } from "../types/supabase.types";
+import useWatchlistMutation from "../hooks/mutations/useWatchlistMutation";
+import useFavoriteMutation from "../hooks/mutations/useFavoriteMutation";
 
 type PropTypes = {
   isWatchlist: boolean;
@@ -18,30 +17,21 @@ const PosterHoverCard = ({
   movieDetail,
 }: PropTypes) => {
   const { user } = useSession();
-  const queryClient = useQueryClient();
 
-  const watchlistMutation = useMutation({
-    mutationFn: () => updateWatchlist(user?.id, movieDetail),
-
-    // onError: (error, _movieId, context) => {
-    //   if (error) {
-    //     throw Error(error.message);
-    //   }
-    //   queryClient.setQueryData(["watchlist"], context?.prevWatchlist);
-    // },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
-    },
-  });
-
-  function handleWatchlist() {
-    watchlistMutation.mutate(user?.id, movieDetail);
-  }
+  const { watchlistMutate, watchlistPending } = useWatchlistMutation();
+  const { favMutate, favPending } = useFavoriteMutation();
 
   return (
     <div className="bg-gray-400 transition-all duration-200 ease-linear shadow-md">
-      <button onClick={handleWatchlist}>
-        {watchlistMutation.isPending ? (
+      <button
+        onClick={() =>
+          watchlistMutate({
+            userId: user?.id as string,
+            movieInfo: movieDetail,
+          })
+        }
+      >
+        {watchlistPending ? (
           <div className="animate-spin h-5 w-5 mr-3 ">Loading</div>
         ) : isWatchlist ? (
           "remove from watchlist"
@@ -49,7 +39,19 @@ const PosterHoverCard = ({
           "Add to watchlist"
         )}
       </button>
-      <button>favorite</button>
+      <button
+        onClick={() =>
+          favMutate({ userId: user?.id as string, movieInfo: movieDetail })
+        }
+      >
+        {favPending ? (
+          <div>Loading</div>
+        ) : isFavorite ? (
+          "Remove from Favorite"
+        ) : (
+          "Add to Favorite"
+        )}
+      </button>
       <button>rating</button>
     </div>
   );

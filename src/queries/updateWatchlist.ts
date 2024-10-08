@@ -2,14 +2,10 @@ import { TMovie } from "../types/tmdb.types";
 import supabase from "../config/supabaseClient";
 import insertMovie from "./insertMovie";
 
-const updateWatchlist = async (userId: string, movieInfo: TMovie) => {
+const updateWatchlist = async (
+  { userId, movieInfo }: { userId: string; movieInfo: TMovie },
+) => {
   try {
-    if (!userId) {
-      // Handle the case where the user is not authenticated
-      // TODO: Handle when user is not authenticated
-      return;
-    }
-
     // Check if the movie is already present
     const isMoviePresent = await insertMovie(movieInfo);
     if (!isMoviePresent) return;
