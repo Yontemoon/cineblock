@@ -7,7 +7,6 @@ import Poster from "../components/Poster";
 import Card from "../components/Card";
 import useGetUserList from "../hooks/useGetUserList";
 import { useSession } from "../hooks/useSession";
-import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: MainPage,
@@ -31,16 +30,25 @@ function MainPage() {
     })),
   });
 
-  const [favorites, rating, watchlist] = useGetUserList(user?.id);
+  const userList = useGetUserList(user?.id);
+
   const [popular, upcoming, topRated] = movieList;
 
   const isLoading =
     movieList.some((result) => result.isLoading) ||
-    [favorites, rating, watchlist].some((query) => query.isLoading);
+    [
+      userList.favoriteQuery,
+      userList.ratingQuery,
+      userList.watchlistQuery,
+    ].some((query) => query.isLoading);
 
   const isError =
     movieList.some((result) => result.isError) ||
-    [favorites, rating, watchlist].some((query) => query.isError);
+    [
+      userList.favoriteQuery,
+      userList.ratingQuery,
+      userList.watchlistQuery,
+    ].some((query) => query.isError);
 
   if (isError) return <div>Error occurred. Please try again later.</div>;
   return (
@@ -49,32 +57,34 @@ function MainPage() {
         <Loader />
       ) : (
         <>
-          <Card className="flex flex-wrap gap-3 m-auto mb-4">
+          <Card className="flex flex-wrap gap-3 m-auto mb-4 justify-center">
             {popular.data &&
               popular.data.map((movie) => (
-                <Link
-                  to="/movie/$id"
-                  params={{
-                    id: movie.id.toString(),
-                  }}
-                >
-                  <Poster
-                    movieDetails={movie}
-                    key={movie.id}
-                    isFavorite={
-                      favorites.data &&
-                      favorites.data.some(
-                        (fav) => fav.movie_id === movie.id || false
-                      )
-                    }
-                    isWatchlist={
-                      watchlist.data &&
-                      watchlist.data.some(
-                        (fav) => fav.movie_id === movie.id || false
-                      )
-                    }
-                  />
-                </Link>
+                <Poster
+                  movieDetails={movie}
+                  key={movie.id}
+                  isFavorite={
+                    (userList.favoriteQuery.data &&
+                      userList.favoriteQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
+                  }
+                  isWatchlist={
+                    (userList.watchlistQuery.data &&
+                      userList.watchlistQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
+                  }
+                  rating={
+                    (userList.ratingQuery.data &&
+                      userList.ratingQuery.data.find(
+                        (rated) => rated.movie_id === movie.id
+                      )?.rating_number) ||
+                    0
+                  }
+                />
               ))}
           </Card>
           <Card className="flex flex-wrap gap-3 m-auto mb-4">
@@ -84,16 +94,25 @@ function MainPage() {
                   movieDetails={movie}
                   key={movie.id}
                   isFavorite={
-                    favorites.data &&
-                    favorites.data.some(
-                      (fav) => fav.movie_id === movie.id || false
-                    )
+                    (userList.favoriteQuery.data &&
+                      userList.favoriteQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
                   }
                   isWatchlist={
-                    watchlist.data &&
-                    watchlist.data.some(
-                      (fav) => fav.movie_id === movie.id || false
-                    )
+                    (userList.watchlistQuery.data &&
+                      userList.watchlistQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
+                  }
+                  rating={
+                    (userList.ratingQuery.data &&
+                      userList.ratingQuery.data.find(
+                        (rated) => rated.movie_id === movie.id
+                      )?.rating_number) ||
+                    0
                   }
                 />
               ))}
@@ -105,16 +124,25 @@ function MainPage() {
                   movieDetails={movie}
                   key={movie.id}
                   isFavorite={
-                    favorites.data &&
-                    favorites.data.some(
-                      (fav) => fav.movie_id === movie.id || false
-                    )
+                    (userList.favoriteQuery.data &&
+                      userList.favoriteQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
                   }
                   isWatchlist={
-                    watchlist.data &&
-                    watchlist.data.some(
-                      (fav) => fav.movie_id === movie.id || false
-                    )
+                    (userList.watchlistQuery.data &&
+                      userList.watchlistQuery.data.some(
+                        (fav) => fav.movie_id === movie.id
+                      )) ||
+                    false
+                  }
+                  rating={
+                    (userList.ratingQuery.data &&
+                      userList.ratingQuery.data.find(
+                        (rated) => rated.movie_id === movie.id
+                      )?.rating_number) ||
+                    0
                   }
                 />
               ))}
